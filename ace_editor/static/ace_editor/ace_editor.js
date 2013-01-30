@@ -2,29 +2,31 @@ window.onload = function(){
     /**
      * Find all .ace-editor elements and set them in their respective modes.
      * */
-    var editorWidgets = document.getElementsByClassName('ace-editor-widget');
+    window.editorWidgets = document.getElementsByClassName('ace-editor-widget');
+    window.editor = []
+    function createfunc(i) {
+        return function(){
+            var value = editor[i].getSession().getValue();
+            var textNode = document.createTextNode(value);
+            var target = editorWidgets[i].getElementsByClassName('ace_editor')[0].getAttribute('data-target');
+            var textarea = document.getElementById(target);
+            textarea.innerHTML = "";
+            textarea.appendChild(textNode);
+        };
+    }
     for(var i = 0, length = editorWidgets.length; i < length; i++){
-        var editorWidget = editorWidgets[0];
-        var editorElement = editorWidget.getElementsByClassName('ace_editor')[0];
-        var editor = ace.edit(editorElement.id);
-        editor.getSession().setUseSoftTabs(true);
+        editor[i] = ace.edit(editorWidgets[i].getElementsByClassName('ace_editor')[0].id);
+        editor[i].getSession().setUseSoftTabs(true);
         /**
          * This will probably be poorly performant as the input grows to move
          * the data on every keypress, a better solution could be to detect if
          * we are inside a form element and only serialize on submit.
          * */
-         editor.getSession().on('change', function(){
-            var value = editor.getSession().getValue();
-            var textNode = document.createTextNode(value);
-            var target = editorElement.getAttribute('data-target');
-            var textarea = document.getElementById(target);
-            textarea.innerHTML = "";
-            textarea.appendChild(textNode);
-        });
-        var mode = editorElement.getAttribute('data-mode');
+        editor[i].getSession().on('change', createfunc(i));
+        var mode = editorWidgets[i].getElementsByClassName('ace_editor')[0].getAttribute('data-mode');
         if(mode){
             var Mode = require("ace/mode/" + mode).Mode;
-            editor.getSession().setMode(new Mode());
+            editor[i].getSession().setMode(new Mode());
         }
     }
 };
